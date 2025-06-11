@@ -14,6 +14,14 @@ const message = ref('인증 정보를 확인하고 있습니다...')
 const router = useRouter()
 
 onMounted(async () => {
+  const hash = window.location.hash
+
+  if (hash.includes('type=recovery')) {
+    // 비밀번호 재설정 → reset-password 경로로 redirect
+    router.replace('/reset-password')
+    return
+  }
+
   const { data, error } = await supabase.auth.getSession()
 
   if (error) {
@@ -21,9 +29,7 @@ onMounted(async () => {
     return
   }
 
-  const session = data.session
-
-  if (session) {
+  if (data.session) {
     message.value = '✅ 인증 및 자동 로그인 완료! 메인 페이지로 이동합니다.'
     setTimeout(() => router.push('/'), 2000)
   } else {
@@ -31,6 +37,7 @@ onMounted(async () => {
     setTimeout(() => router.push('/login'), 3000)
   }
 })
+
 </script>
 
 <style scoped>
