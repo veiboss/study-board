@@ -13,7 +13,8 @@ let otpToken = ''
 
 onMounted(() => {
   const params = new URLSearchParams(window.location.search)
-  otpToken = params.get('token')
+  // query string 에서는 access_token 이 key 이므로 둘 다 지원
+  otpToken = params.get('token') ?? params.get('access_token')
   const type = params.get('type')
 
   if (type === 'recovery' && otpToken) {
