@@ -2,7 +2,12 @@
   <main>
     <h1>🔑 비밀번호 재설정 요청</h1>
     <form @submit.prevent="sendRecovery">
-      <input v-model="email" type="email" placeholder="이메일" required />
+      <input
+        v-model="email"
+        type="email"
+        placeholder="이메일을 입력하세요"
+        required
+      />
       <button :disabled="cooldown">
         {{ cooldown ? '잠시만 기다려주세요…' : '재설정 메일 받기' }}
       </button>
@@ -25,7 +30,10 @@ async function sendRecovery() {
 
   const { error } = await supabase.auth.resetPasswordForEmail(
     email.value,
-    { redirectTo: 'https://study-board-three.vercel.app/reset-password' }
+    {
+      // 🔥 여기를 reset-password 경로로만 설정
+      redirectTo: 'https://study-board-three.vercel.app/reset-password'
+    }
   )
 
   if (error) {
