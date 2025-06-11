@@ -11,6 +11,7 @@ import SignupView from '../views/SignupView.vue'
 import MyPostsView from '../views/MyPostsView.vue'
 import ConfirmView from '../views/ConfirmView.vue'
 import ResetPasswordView from '../views/ResetPasswordView.vue'
+import ForgotPasswordView from '../views/ForgotPasswordView.vue'
 
 const routes = [
   { path: '/', component: HomeView },
@@ -25,7 +26,7 @@ const routes = [
   { path: '/my-posts', component: MyPostsView},
   { path: '/confirm', component: ConfirmView},
   { path: '/reset-password', component: ResetPasswordView },
-
+  { path: '/forgot-password', component: ForgotPasswordView },
 
 ]
 

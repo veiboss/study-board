@@ -4,6 +4,10 @@
     <input v-model="email" type="email" placeholder="이메일 입력" />
     <input v-model="password" type="password" placeholder="비밀번호 입력" />
     <button @click="login">로그인</button>
+    <router-link to="/forgot-password" class="forgot-btn">
+  비밀번호 찾기
+  </router-link>
+
     <p class="error" v-if="errorMessage">{{ errorMessage }}</p>
   </main>
 </template>
