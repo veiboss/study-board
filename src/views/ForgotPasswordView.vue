@@ -29,12 +29,10 @@ async function sendRecovery() {
   statusMessage.value = ''
 
   const { error } = await supabase.auth.resetPasswordForEmail(
-    email.value,
-    {
-      // 🔥 여기를 reset-password 경로로만 설정
-      redirectTo: 'https://study-board-three.vercel.app/reset-password'
-    }
-  )
+   email.value,
+   { redirectTo: 'https://study-board-three.vercel.app/reset-password' }
+ )
+   
 
   if (error) {
     statusMessage.value = error.message.includes('15 seconds')
