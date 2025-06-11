@@ -9,10 +9,11 @@
       <input v-model="keyword" placeholder="제목 또는 내용 검색" />
       <select v-model="categoryFilter">
         <option value="">-- 전체 카테고리 --</option>
-        <option>Vue</option>
-        <option>Java</option>
-        <option>Python</option>
+        <option value="자바 문법">자바 문법</option>
+        <option value="자료구조">자료구조</option>
+        <option value="알고리즘">알고리즘</option>
       </select>
+
     </div>
 
     <div v-if="filteredQuestions.length > 0">
