@@ -2,7 +2,7 @@
   <main>
     <!-- ✅ 고정된 정리글 -->
     <section v-if="pinnedNote" class="pinned-note">
-      <h2>📌 고정된 정리글</h2>
+      <h2>📌 공지! </h2>
       <div class="note-card" @click="goToNote(pinnedNote.id)">
         <h3>{{ pinnedNote.title }}</h3>
         <p>{{ pinnedNote.category }}</p>
