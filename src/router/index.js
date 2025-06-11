@@ -9,6 +9,8 @@ import AskDetail from '../views/AskDetail.vue'
 import LoginView from '../views/LoginView.vue'
 import SignupView from '../views/SignupView.vue'
 import MyPostsView from '../views/MyPostsView.vue'
+import ConfirmView from '../views/ConfirmView.vue'
+import ResetPasswordView from '../views/ResetPasswordView.vue'
 
 const routes = [
   { path: '/', component: HomeView },
@@ -21,6 +23,10 @@ const routes = [
   { path: '/login', component: LoginView },
   { path: '/signup', component: SignupView },
   { path: '/my-posts', component: MyPostsView},
+  { path: '/confirm', component: ConfirmView},
+  { path: '/reset-password', component: ResetPasswordView },
+
+
 ]
 
 export default createRouter({
