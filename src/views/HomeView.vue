@@ -1,6 +1,17 @@
 <template>
   <main>
-    <h2>📌 최신 정리글</h2>
+    <!-- ✅ 고정된 정리글 -->
+    <section v-if="pinnedNote" class="pinned-note">
+      <h2>📌 고정된 정리글</h2>
+      <div class="note-card" @click="goToNote(pinnedNote.id)">
+        <h3>{{ pinnedNote.title }}</h3>
+        <p>{{ pinnedNote.category }}</p>
+        <p class="date">작성일: {{ formatDate(pinnedNote.created_at) }}</p>
+      </div>
+    </section>
+
+    <!-- 🆕 최신 정리글 -->
+    <h2>🆕 최신 정리글</h2>
     <NoteCard
       v-for="note in latestNotes"
       :key="note.id"
@@ -8,6 +19,7 @@
       @click="goToNote(note.id)"
     />
 
+    <!-- ❓ 인기 질문 -->
     <h2>❓ 인기 질문</h2>
     <div
       v-for="q in latestQuestions"
@@ -31,56 +43,67 @@ import { supabase } from '@/supabase.js'
 import NoteCard from '@/components/NoteCard.vue'
 
 const router = useRouter()
+const pinnedNote = ref(null)
 const latestNotes = ref([])
 const latestQuestions = ref([])
 
-onMounted(async () => {
-  // 1️⃣ 최신 정리글 2개 가져오기
-  const { data: notes, error: noteError } = await supabase
-    .from('notes')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(2)
+// 고정할 note의 ID
+const PINNED_NOTE_ID = 5
 
-  if (!noteError) {
-    latestNotes.value = notes
+onMounted(async () => {
+  // 🔹 고정된 note(id=5)
+  const { data: fixed, error: pErr } = await supabase
+  .from('notes')
+  .select('*')
+  .eq('id', 5)
+  .maybeSingle()
+
+  if (!pErr && fixed) {
+    pinnedNote.value = fixed
   } else {
-    console.error('정리글 불러오기 실패:', noteError)
+   console.warn('📛 고정 note 불러오기 실패:', pErr, fixed)
   }
 
-const { data: questions, error: qError } = await supabase
-  .from('questions')
-  .select('id, title, content, category, created_at')
 
-if (qError) {
-  console.error('질문 불러오기 실패:', qError)
-  return
-}
+  // 🔹 최신 note 2개 (고정글 제외)
+  const { data: notes, error: nErr } = await supabase
+    .from('notes')
+    .select('*')
+    .neq('id', PINNED_NOTE_ID)
+    .order('created_at', { ascending: false })
+    .limit(2)
+  if (!nErr) latestNotes.value = notes
+  else console.error('최신 note 조회 실패:', nErr)
 
-// 각 질문별 댓글 수 가져오기
-const { data: comments, error: cError } = await supabase
-  .from('comments')
-  .select('question_id')
+  // 🔹 질문 목록 + 댓글 수
+  const { data: questions, error: qError } = await supabase
+    .from('questions')
+    .select('id, title, content, category, created_at')
+  if (qError) {
+    console.error('질문 불러오기 실패:', qError)
+    return
+  }
 
-if (cError) {
-  console.error('댓글 불러오기 실패:', cError)
-  return
-}
+  const { data: comments, error: cError } = await supabase
+    .from('comments')
+    .select('question_id')
+  if (cError) {
+    console.error('댓글 불러오기 실패:', cError)
+    return
+  }
 
-// 댓글 수 계산
-const commentCountMap = {}
-comments.forEach(c => {
-  commentCountMap[c.question_id] = (commentCountMap[c.question_id] || 0) + 1
-})
+  const countMap = {}
+  comments.forEach(c => {
+    countMap[c.question_id] = (countMap[c.question_id] || 0) + 1
+  })
 
-// 댓글 수를 질문 객체에 추가하고 정렬
-latestQuestions.value = questions
-  .map(q => ({
-    ...q,
-    comment_count: commentCountMap[q.id] || 0,
-  }))
-  .sort((a, b) => b.comment_count - a.comment_count)
-  .slice(0, 2)
+  latestQuestions.value = questions
+    .map(q => ({
+      ...q,
+      comment_count: countMap[q.id] || 0,
+    }))
+    .sort((a, b) => b.comment_count - a.comment_count)
+    .slice(0, 2)
 })
 
 function goToNote(id) {
@@ -89,7 +112,6 @@ function goToNote(id) {
 function goToQuestion(id) {
   router.push(`/ask/${id}`)
 }
-
 function formatDate(dateStr) {
   const d = new Date(dateStr)
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
@@ -104,6 +126,22 @@ main {
 }
 h2 {
   margin-top: 2rem;
+}
+.pinned-note {
+  background-color: #f9f9f9;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  margin-bottom: 2rem;
+}
+.note-card {
+  cursor: pointer;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  margin-bottom: 1rem;
+  transition: background-color 0.2s;
+}
+.note-card:hover {
+  background-color: #eef;
 }
 .question-card {
   border: 1px solid #ccc;
