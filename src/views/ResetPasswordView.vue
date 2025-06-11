@@ -12,10 +12,23 @@ const successMessage = ref('')
 let otpToken = ''
 
 onMounted(() => {
-  const params = new URLSearchParams(window.location.search)
-  // query string 에서는 access_token 이 key 이므로 둘 다 지원
-  otpToken = params.get('token') ?? params.get('access_token')
+  // 1) rawQuery를 가져와서
+  const rawQuery = window.location.search || window.location.hash.substring(1)
+  console.log('🔍 rawQuery:', rawQuery)
+
+  const params = new URLSearchParams(
+   window.location.search.substring(1) || window.location.hash.substring(1)
+  )
+  const tokenParam = params.get('token')
+  const accessParam = params.get('access_token')
   const type = params.get('type')
+
+  console.log('🔍 parsed token:', tokenParam)
+  console.log('🔍 parsed access_token:', accessParam)
+  console.log('🔍 parsed type:', type)
+
+  otpToken = tokenParam ?? accessParam
+  console.log('🔍 using otpToken:', otpToken)
 
   if (type === 'recovery' && otpToken) {
     ready.value = true
