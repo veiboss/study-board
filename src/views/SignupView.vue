@@ -25,7 +25,7 @@ async function signup() {
     { email: email.value, password: password.value },
     {
       // 회원가입 확인 후 이 URL로 바로 돌아오게 합니다.
-      redirectTo: 'https://study-board-three.vercel.app/confirm'
+      redirectTo: 'https://study-board-three.vercel.app/confirm',
      }
    )
   if (error) {
