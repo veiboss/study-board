@@ -1,13 +1,10 @@
 <template>
   <main>
     <h1>🔐 비밀번호 재설정</h1>
-
-    <!-- 1) 세션 셋업 전 -->
     <p v-if="!ready && !errorMessage" class="info">{{ statusMessage }}</p>
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
 
-    <!-- 2) 세션 성공 시 폼 표시 -->
-    <form v-if="ready" @submit.prevent="resetPassword">
+    <form v-else @submit.prevent="resetPassword">
       <input
         v-model="newPassword"
         type="password"
@@ -17,7 +14,6 @@
       <button type="submit">비밀번호 변경</button>
     </form>
 
-    <!-- 3) 변경 완료 후 -->
     <p v-if="successMessage" class="success">{{ successMessage }}</p>
   </main>
 </template>
@@ -33,23 +29,17 @@ const statusMessage = ref('링크를 확인 중입니다…')
 const newPassword = ref('')
 const errorMessage = ref('')
 const successMessage = ref('')
+let otpToken = ''
 
-onMounted(async () => {
-  // 1) access_token과 type 파싱
-  const params = new URLSearchParams(window.location.search.replace(/^\?/, ''))
-  const access_token = params.get('access_token')
+onMounted(() => {
+  // OTP는 해시(fragment)로 전달됩니다.
+  const hash = window.location.hash.substring(1)
+  const params = new URLSearchParams(hash)
+  otpToken = params.get('token')
   const type = params.get('type')
 
-  // 2) recovery + 토큰 있을 때만 세션설정
-  if (type === 'recovery' && access_token) {
-    const { error: sessErr } = await supabase.auth.setSession({
-      access_token
-    })
-    if (sessErr) {
-      errorMessage.value = '❌ 세션 설정 실패: ' + sessErr.message
-    } else {
-      ready.value = true
-    }
+  if (type === 'recovery' && otpToken) {
+    ready.value = true
   } else {
     statusMessage.value = '유효하지 않은 링크입니다. 로그인 페이지로 이동합니다.'
     setTimeout(() => router.push('/login'), 2000)
@@ -57,9 +47,10 @@ onMounted(async () => {
 })
 
 async function resetPassword() {
-  // 3) 세션 기반 비밀번호 변경
-  const { error } = await supabase.auth.updateUser({
-    password: newPassword.value
+  const { error } = await supabase.auth.verifyOtp({
+    type: 'recovery',
+    token: otpToken,
+    newPassword: newPassword.value,
   })
 
   if (error) {
@@ -74,36 +65,12 @@ async function resetPassword() {
 </script>
 
 <style scoped>
-.info {
-  text-align: center;
-  color: #555;
-  margin-top: 1rem;
-}
-.error {
-  text-align: center;
-  color: red;
-  margin-top: 1rem;
-}
-.success {
-  text-align: center;
-  color: green;
-  margin-top: 1rem;
-}
+.info    { text-align:center; color:#555;  margin-top:1rem; }
+.error   { text-align:center; color:red;   margin-top:1rem; }
+.success { text-align:center; color:green; margin-top:1rem; }
 form {
-  max-width: 400px;
-  margin: 2rem auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  max-width:400px; margin:2rem auto; display:flex; flex-direction:column; gap:1rem;
 }
-input {
-  padding: 0.6rem;
-}
-button {
-  padding: 0.8rem;
-  background-color: #0055aa;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
+input  { padding:0.6rem; }
+button { padding:0.8rem; background:#0055aa; color:white; border:none; }
 </style>
