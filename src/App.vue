@@ -29,6 +29,40 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
+onMounted(async () => {
+  const hash = window.location.hash
+  const params = new URLSearchParams(hash.slice(1))
+
+  const access_token = params.get('access_token')
+  const refresh_token = params.get('refresh_token')
+  const type = params.get('type')
+
+  if (access_token && refresh_token) {
+    const { error } = await supabase.auth.setSession({
+      access_token,
+      refresh_token,
+    })
+
+    if (error) {
+      console.error('세션 설정 실패:', error)
+      return
+    }
+
+    // 로그인 성공 시 localStorage에 사용자 정보 저장
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    if (!userError && userData.user) {
+      localStorage.setItem('currentUser', JSON.stringify(userData.user))
+    }
+
+    // 링크 종류에 따라 라우팅
+    if (type === 'signup') {
+      router.push('/confirm')
+    } else if (type === 'recovery') {
+      router.push('/reset-password')
+    }
+  }
+})
+
 const router = useRouter()
 
 function goHome() {
