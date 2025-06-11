@@ -34,18 +34,13 @@ const errorMessage = ref('')
 const router = useRouter()
 
 onMounted(async () => {
-  // URL 해시에서 토큰을 파싱
-  // const hash = window.location.hash.substring(1)  // leading '#' 제거
-  // const params = new URLSearchParams(hash)
-  // const access_token = params.get('access_token')
-  // const refresh_token = params.get('refresh_token')
-  // const type = params.get('type')
-
-    // 1) 해시(hash)에서 먼저 파싱
-  let params = new URLSearchParams(window.location.hash.substring(1))
-  let access_token = params.get('access_token')
-  let refresh_token = params.get('refresh_token')
-  let type = params.get('type')
+  //🔍 해시나 쿼리 모두에서 access_token·type 파싱
+  const raw = window.location.hash.length > 1
+    ? window.location.hash.substring(1)
+    : window.location.search.substring(1)
+  const params = new URLSearchParams(raw)
+  const access_token = params.get('access_token')
+  const type = params.get('type')
 
   // 2) 해시에 없으면 query string에서 다시 파싱 (Supabase verify redirect를 쿼리로 썼을 때)
   if (!access_token) {
@@ -55,12 +50,15 @@ onMounted(async () => {
     type = params.get('type')
   }
 
-  if (type === 'recovery' && access_token && refresh_token) {
-    // Supabase 세션 설정
-    const { error: sessErr } = await supabase.auth.setSession({
-      access_token,
-      refresh_token,
-    })
+  // if (type === 'recovery' && access_token && refresh_token) {
+  //   // Supabase 세션 설정
+  //   const { error: sessErr } = await supabase.auth.setSession({
+  //     access_token,
+  //     refresh_token,
+  //   })
+    if (type === 'recovery' && access_token) {
+    // Supabase 세션 설정 (refresh_token 없이도 가능)
+    const { error: sessErr } = await supabase.auth.setSession({ access_token })
     if (sessErr) {
       statusMessage.value = '❌ 세션 설정에 실패했습니다: ' + sessErr.message
       return
