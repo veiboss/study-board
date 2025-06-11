@@ -2,12 +2,12 @@
   <main>
     <h1>🔐 비밀번호 재설정</h1>
 
-    <!-- 1) 세션 설정 전 안내 -->
+    <!-- 1) 세션 셋업 전 -->
     <p v-if="!ready && !errorMessage" class="info">{{ statusMessage }}</p>
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
 
-    <!-- 2) 세션 설정 완료 시 폼 노출 -->
-    <form v-else @submit.prevent="resetPassword">
+    <!-- 2) 세션 성공 시 폼 표시 -->
+    <form v-if="ready" @submit.prevent="resetPassword">
       <input
         v-model="newPassword"
         type="password"
@@ -17,7 +17,7 @@
       <button type="submit">비밀번호 변경</button>
     </form>
 
-    <!-- 3) 변경 완료 후 메시지 -->
+    <!-- 3) 변경 완료 후 -->
     <p v-if="successMessage" class="success">{{ successMessage }}</p>
   </main>
 </template>
@@ -33,21 +33,20 @@ const statusMessage = ref('링크를 확인 중입니다…')
 const newPassword = ref('')
 const errorMessage = ref('')
 const successMessage = ref('')
-let sessionToken = ''
 
 onMounted(async () => {
-  // URL 쿼리스트링에서 access_token과 type 파싱
-  const params = new URLSearchParams(window.location.search.substring(1))
-  sessionToken = params.get('access_token')
+  // 1) access_token과 type 파싱
+  const params = new URLSearchParams(window.location.search.replace(/^\?/, ''))
+  const access_token = params.get('access_token')
   const type = params.get('type')
 
-  if (type === 'recovery' && sessionToken) {
-    // Supabase 세션 설정
+  // 2) recovery + 토큰 있을 때만 세션설정
+  if (type === 'recovery' && access_token) {
     const { error: sessErr } = await supabase.auth.setSession({
-      access_token: sessionToken,
+      access_token
     })
     if (sessErr) {
-      errorMessage.value = '세션 설정 실패: ' + sessErr.message
+      errorMessage.value = '❌ 세션 설정 실패: ' + sessErr.message
     } else {
       ready.value = true
     }
@@ -58,9 +57,9 @@ onMounted(async () => {
 })
 
 async function resetPassword() {
-  // 비밀번호 변경 호출
+  // 3) 세션 기반 비밀번호 변경
   const { error } = await supabase.auth.updateUser({
-    password: newPassword.value,
+    password: newPassword.value
   })
 
   if (error) {
